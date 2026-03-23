@@ -1,4 +1,4 @@
-import { FormError, IBuyer } from "../../../types";
+import { FormError, IBuyer } from "../../types";
 
 export class Buyer {
   private data: IBuyer = {

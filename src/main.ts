@@ -1,10 +1,10 @@
 import "./scss/styles.scss";
-import { Products } from "./components/base/models/catalog";
-import { Buyer } from "./components/base/models/buyer";
-import { Bucket } from "./components/base/models/bucket";
+import { Products } from "./components/models/catalog";
+import { Buyer } from "./components/models/buyer";
+import { Bucket } from "./components/models/bucket";
 import { apiProducts } from "./utils/data";
-import { Api } from "./components/base/base/Api";
-import { LarekAPI } from "./components/base/LarekApi";
+import { Api } from "./components/base/Api";
+import { LarekAPI } from "./components/LarekApi";
 import { API_URL } from "./utils/constants";
 
 const productsModel = new Products();
