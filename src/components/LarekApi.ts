@@ -1,4 +1,4 @@
-import { IApi, IProduct, IProductList, IOrderRequest, IOrderResponse } from '../../types';
+import { IApi, IProduct, IProductList, IOrderRequest, IOrderResponse } from '../types';
 
 export class LarekAPI {
   constructor(protected api: IApi) { }

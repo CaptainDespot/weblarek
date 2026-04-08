@@ -1,19 +1,41 @@
-/**
- * Базовый компонент
- */
 export abstract class Component<T> {
     protected constructor(protected readonly container: HTMLElement) {
         // Учитывайте что код в конструкторе исполняется ДО всех объявлений в дочернем классе
     }
 
+    // Публичный геттер для доступа к контейнеру
+    get element(): HTMLElement {
+        return this.container;
+    }
+
     // Инструментарий для работы с DOM в дочерних компонентах
 
     // Установить изображение с альтернативным текстом
-    protected setImage(element: HTMLImageElement, src: string, alt?: string) {
+    protected setImage(element: HTMLImageElement, src: string, alt?: string): void {
         if (element) {
             element.src = src;
             if (alt) {
                 element.alt = alt;
+            }
+        }
+    }
+
+    // Установить текстовое содержимое
+    protected setText(element: HTMLElement, text: string | number): void;
+    protected setText(element: Element, text: string | number): void {
+        if (element) {
+            element.textContent = String(text);
+        }
+    }
+
+    // Изменить состояние кнопки
+    protected setDisabled(element: HTMLElement, state: boolean): void;
+    protected setDisabled(element: Element, state: boolean): void {
+        if (element) {
+            if (state) {
+                element.setAttribute('disabled', 'disabled');
+            } else {
+                element.removeAttribute('disabled');
             }
         }
     }
