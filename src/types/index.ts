@@ -4,6 +4,7 @@ export interface IApi {
     get<T extends object>(uri: string): Promise<T>;
     post<T extends object>(uri: string, data: object, method?: ApiPostMethods): Promise<T>;
 }
+
 export type TPayment = 'card' | 'cash' | '';
 
 export interface IProduct {
@@ -27,11 +28,11 @@ export interface IProductList {
     items: IProduct[];
 }
 
-export interface IOrderRequest {
-    payment: TPayment;
-    address: string;
-    email: string;
-    phone: string;
+/**
+ * Используем наследование (extends), чтобы IOrderRequest 
+ * автоматически включал в себя все поля из IBuyer.
+ */
+export interface IOrderRequest extends IBuyer {
     items: string[];
     total: number;
 }

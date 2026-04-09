@@ -2,26 +2,31 @@ import { ensureElement } from '../../utils/utils';
 import { Component } from '../base/Component';
 import { IEvents } from '../base/Events';
 
-export class Header extends Component<{ count: number }> {
-  protected _basketButton: HTMLButtonElement;
-  protected _counter: HTMLElement;
-  protected events: IEvents;
+// Типизируем компонент через интерфейс
+interface IHeaderData {
+    count: number;
+}
 
-  constructor(container: HTMLElement, events: IEvents) {
-    super(container);
-    this.events = events;
-    this._basketButton = ensureElement<HTMLButtonElement>('.header__basket', container);
-    this._counter = ensureElement<HTMLElement>('.header__basket-counter', container);
+export class Header extends Component<IHeaderData> {
+    protected _basketButton: HTMLButtonElement;
+    protected _counter: HTMLElement;
 
-    this._basketButton.addEventListener('click', () => {
-      this.events.emit('header:basket');
-    });
-  }
+    constructor(container: HTMLElement, protected events: IEvents) {
+        super(container);
 
-  render(data?: Partial<{ count: number }>): HTMLElement {
-    if (data?.count !== undefined) {
-      this._counter.textContent = String(data.count);
+        this._basketButton = ensureElement<HTMLButtonElement>('.header__basket', container);
+        this._counter = ensureElement<HTMLElement>('.header__basket-counter', container);
+
+        // Вешаем слушатель на кнопку корзины
+        this._basketButton.addEventListener('click', () => {
+            this.events.emit('header:basket');
+        });
     }
-    return this.container;
-  }
+
+    /**
+     * Сеттер для установки значения в счетчик корзины.
+     */
+    set count(value: number) {
+        this.setText(this._counter, String(value));
+    }
 }

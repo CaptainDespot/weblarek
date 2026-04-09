@@ -1,40 +1,31 @@
-import { IProduct } from "../../types";
 import { ensureElement } from "../../utils/utils";
-import { IEvents } from "../base/Events";
 import { Card } from "./Card";
+import { IEvents } from "../base/Events";
+
+// Интерфейс для действий
+interface ICardBasketActions {
+    onDelete: (event: MouseEvent) => void;
+}
 
 export class CardBasket extends Card {
-  protected _index: HTMLElement;
-  protected _button: HTMLButtonElement;
-  private _buttonClickHandler?: () => void;
+    protected _index: HTMLElement;
+    protected _button: HTMLButtonElement;
 
-  constructor(container: HTMLElement, events: IEvents) {
-    super(container, events);
-    this._index = ensureElement<HTMLElement>(".basket__item-index", container);
-    this._button = ensureElement<HTMLButtonElement>(
-      ".basket__item-delete",
-      container,
-    );
+    constructor(container: HTMLElement, events: IEvents, actions?: ICardBasketActions) {
+        super(container, events);
 
-    this._button.addEventListener("click", () => {
-      if (this._buttonClickHandler) {
-        this._buttonClickHandler();
-      }
-    });
-  }
+        this._index = ensureElement<HTMLElement>(".basket__item-index", container);
+        this._button = ensureElement<HTMLButtonElement>(".basket__item-delete", container);
 
-  render(data?: Partial<IProduct & { index: number }>): HTMLElement {
-    if (!data) return this.container;
-    const product = data as IProduct;
-    this._buttonClickHandler = () => {
-      this.events.emit("card:remove", { product });
-    };
-    if (data.index !== undefined) {
-      this._index.textContent = String(data.index);
+        if (actions?.onDelete) {
+            this._button.addEventListener("click", actions.onDelete);
+        }
     }
-    if (data.title) this.setTitle(data.title);
-    if (data.price !== undefined) this.setPrice(data.price);
 
-    return this.container;
-  }
+    // Сеттер для индекса. Если setText не работает, используем textContent
+    set index(value: number) {
+        if (this._index) {
+            this._index.textContent = String(value);
+        }
+    }
 }

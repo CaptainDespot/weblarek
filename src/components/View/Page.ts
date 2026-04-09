@@ -1,16 +1,23 @@
 import { Component } from '../base/Component';
 import { ensureElement } from '../../utils/utils';
 
-export class Page extends Component<HTMLElement[]> {
-  protected _gallery: HTMLElement;
+// Интерфейс для данных страницы
+interface IPage {
+    catalog: HTMLElement[];
+}
 
-  constructor(container: HTMLElement) {
-    super(container);
-    this._gallery = ensureElement<HTMLElement>('.gallery', container);
-  }
+export class Page extends Component<IPage> {
+    protected _gallery: HTMLElement;
 
-  render(cards: HTMLElement[]): HTMLElement {
-    this._gallery.replaceChildren(...cards);
-    return this.container;
-  }
+    constructor(container: HTMLElement) {
+        super(container);
+        this._gallery = ensureElement<HTMLElement>('.gallery', container);
+    }
+
+    /**
+     * Сеттер для обновления витрины (showcase).
+     */
+    set catalog(items: HTMLElement[]) {
+        this._gallery.replaceChildren(...items);
+    }
 }

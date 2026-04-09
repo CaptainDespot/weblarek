@@ -1,47 +1,40 @@
-import { IProduct } from "../../types";
 import { ensureElement } from "../../utils/utils";
 import { IEvents } from "../base/Events";
 import { CardImage } from "./CardImage";
 
 export class CardPreview extends CardImage {
-  protected _text: HTMLElement;
-  protected _button: HTMLButtonElement;
-  private _product: IProduct | null = null;
+    protected _text: HTMLElement;
+    protected _button: HTMLButtonElement;
 
-  constructor(container: HTMLElement, events: IEvents) {
-    super(container, events);
-    this._text = ensureElement<HTMLElement>(".card__text", container);
-    this._button = ensureElement<HTMLButtonElement>(".card__button", container);
+    constructor(container: HTMLElement, events: IEvents) {
+        super(container, events);
+        this._text = ensureElement<HTMLElement>(".card__text", container);
+        this._button = ensureElement<HTMLButtonElement>(".card__button", container);
 
-    this._button.addEventListener("click", () => {
-      this.events.emit("card:toggle", { product: this._product });
-    });
-  }
-
-  render(data?: Partial<IProduct & { inBasket: boolean }>): HTMLElement {
-    if (!data) return this.container;
-    this._product = data as IProduct;
-
-    if (data.category) this.setCategory(data.category);
-    if (data.title) this.setTitle(data.title);
-    if (data.image) this.setProductImage(data.image, data.title);
-    if (data.price !== undefined) this.setPrice(data.price);
-    if (data.description) {
-      this._text.textContent = data.description;
-    }
-    const inBasket = data.inBasket || false;
-    if (data.price === null) {
-      this._button.disabled = true;
-      this._button.textContent = "Недоступно";
-    } else {
-      this._button.disabled = false;
-      if (inBasket) {
-        this._button.textContent = "Удалить из корзины";
-      } else {
-        this._button.textContent = "Купить";
-      }
+        this._button.addEventListener("click", () => {
+            this.events.emit("card:toggle");
+        });
     }
 
-    return this.container;
-  }
+    set text(value: string) {
+        this.setText(this._text, value);
+    }
+
+    set price(value: number | null) {
+        this.setText(this._price, value !== null ? `${value} синапсов` : 'Бесценно');
+        
+        if (value === null) {
+            this.setDisabled(this._button, true);
+            this.setText(this._button, "Недоступно");
+        } else {
+            this.setDisabled(this._button, false);
+        }
+    }
+
+    // Сеттер для изменения текста кнопки в зависимости от состояния корзины
+    set inBasket(value: boolean) {
+        if (!this._button.disabled) { // Меняем текст только если товар продается
+            this.setText(this._button, value ? "Удалить из корзины" : "В корзину");
+        }
+    }
 }

@@ -1,56 +1,48 @@
 import { Component } from '../base/Component';
 import { ensureElement } from '../../utils/utils';
+import { IEvents } from '../base/Events';
 
-export class Modal extends Component<void> {
-  protected _content: HTMLElement;
-  protected _closeButton: HTMLButtonElement;
+// Описываем, что может принимать модалка (только контент)
+interface IModalData {
+    content: HTMLElement;
+}
 
-  constructor(container: HTMLElement) {
-    super(container);
-    this._content = ensureElement<HTMLElement>('.modal__content', container);
-    this._closeButton = ensureElement<HTMLButtonElement>('.modal__close', container);
+export class Modal extends Component<IModalData> {
+    protected _closeButton: HTMLButtonElement;
+    protected _content: HTMLElement;
 
-    // Закрытие по клику на кнопку закрытия
-    this._closeButton.addEventListener('click', () => {
-      this.close();
-    });
+    constructor(container: HTMLElement, protected events: IEvents) {
+        super(container);
 
-    // Закрытие по клику вне модального окна
-    container.addEventListener('click', (e) => {
-      if (e.target === container) {
-        this.close();
-      }
-    });
+        this._closeButton = ensureElement<HTMLButtonElement>('.modal__close', container);
+        this._content = ensureElement<HTMLElement>('.modal__content', container);
 
-    // Предотвращение скролла модального окна
-    container.addEventListener('wheel', (e) => {
-      e.stopPropagation();
-    });
-  }
+        this._closeButton.addEventListener('click', this.close.bind(this));
+        
+        this.container.addEventListener('click', (e) => {
+            if (e.target === this.container) {
+                this.close();
+            }
+        });
 
-  setContent(content: HTMLElement): void {
-    this._content.replaceChildren(content);
-  }
+        this._content.addEventListener('click', (event) => event.stopPropagation());
+    }
 
-  open(): void {
-    this.container.classList.add('modal_active');
-    // Блокируем скролл body при открытии модального окна
-    document.body.style.overflow = 'hidden';
-  }
+    /**
+     * Сеттер для контента. 
+     */
+    set content(value: HTMLElement) {
+        this._content.replaceChildren(value);
+    }
 
-  close(): void {
-    this.container.classList.remove('modal_active');
-    // Восстанавливаем скролл body при закрытии модального окна
-    document.body.style.overflow = '';
-    // Очищаем контент
-    this._content.innerHTML = '';
-  }
+    open() {
+        this.container.classList.add('modal_active');
+        this.events.emit('modal:open');
+    }
 
-  containsBasket(): boolean {
-    return this._content.querySelector('.basket') !== null;
-  }
-
-  render(): HTMLElement {
-    return this.container;
-  }
+    close() {
+        this.container.classList.remove('modal_active');
+        this._content.replaceChildren(); 
+        this.events.emit('modal:close');
+    }
 }

@@ -1,68 +1,43 @@
 import { IBuyer } from '../../types';
-import { ensureAllElements, ensureElement } from '../../utils/utils';
+import { ensureAllElements } from '../../utils/utils';
 import { IEvents } from '../base/Events';
 import { Form } from './Form';
 
 export class OrderForm extends Form<IBuyer> {
-  protected _paymentButtons: HTMLButtonElement[];
-  protected _addressInput: HTMLInputElement;
+    protected _paymentButtons: HTMLButtonElement[];
 
-  constructor(container: HTMLElement, events: IEvents) {
-    super(container, events);
+    constructor(container: HTMLFormElement, events: IEvents) {
+        super(container, events);
 
-    this._paymentButtons = ensureAllElements<HTMLButtonElement>('.order__buttons button', container);
-    this._addressInput = ensureElement<HTMLInputElement>('input[name="address"]', container);
+        this._paymentButtons = ensureAllElements<HTMLButtonElement>('.order__buttons button', container);
 
-    // Обработчики выбора способа оплаты
-    this._paymentButtons.forEach((button) => {
-      button.addEventListener('click', () => {
-        const paymentName = button.name as 'card' | 'cash';
-        this.events.emit('order:change', {
-          payment: paymentName
-        } as Partial<IBuyer>);
-      });
-    });
-
-    // Обработчик изменения адреса
-    this._addressInput.addEventListener('input', () => {
-      this.events.emit('order:change', {
-        address: this._addressInput.value
-      } as Partial<IBuyer>);
-    });
-
-    // Обработчик отправки формы
-    container.addEventListener('submit', (e) => {
-      e.preventDefault();
-      this.events.emit('order:submit');
-    });
-  }
-
-  setPayment(payment: 'card' | 'cash'): void {
-    // Обновляем визуальное состояние кнопок
-    this._paymentButtons.forEach((button) => {
-      if (button.name === payment) {
-        button.classList.add('button_alt-active');
-      } else {
-        button.classList.remove('button_alt-active');
-      }
-    });
-  }
-  reset(): void {
-    super.reset();
-    this._addressInput.value = '';
-    this._paymentButtons.forEach((button) => {
-      button.classList.remove('button_alt-active');
-    });
-  }
-  render(data?: Partial<IBuyer>): HTMLElement {
-    if (data) {
-      if (data.payment && (data.payment === 'card' || data.payment === 'cash')) {
-        this.setPayment(data.payment);
-      }
-      if (data.address) {
-        this._addressInput.value = data.address;
-      }
+        // Слушаем клики по кнопкам оплаты
+        this._paymentButtons.forEach((button) => {
+            button.addEventListener('click', () => {
+                // Уведомляем систему о смене способа оплаты
+                this.events.emit('order:change', {
+                    payment: button.name as 'card' | 'cash'
+                });
+            });
+        });
     }
-    return this.container;
-  }
+
+    /**
+     * Сеттер для адреса.
+     */
+    set address(value: string) {
+        const input = this.container.querySelector<HTMLInputElement>('input[name="address"]');
+        if (input) {
+            input.value = value;
+        }
+    }
+
+    /**
+     * Сеттер для визуального переключения кнопок оплаты.
+     */
+    set payment(value: string) {
+        this._paymentButtons.forEach((button) => {
+            button.classList.toggle('button_alt-active', button.name === value);
+        });
+    }
 }

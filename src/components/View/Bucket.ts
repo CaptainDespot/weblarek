@@ -5,49 +5,51 @@ import { IEvents } from "../base/Events";
 import { CardBasket } from "./CardBucket";
 
 export class Bucket extends Component<{ items: HTMLElement[]; total: number }> {
-  protected _list: HTMLElement;
-  protected _total: HTMLElement;
-  protected _button: HTMLButtonElement;
-  protected events: IEvents;
+    protected _list: HTMLElement;
+    protected _total: HTMLElement;
+    protected _button: HTMLButtonElement;
 
-  constructor(container: HTMLElement, events: IEvents) {
-    super(container);
-    this.events = events;
+    constructor(container: HTMLElement, protected events: IEvents) {
+        super(container);
 
-    this._list = ensureElement<HTMLElement>(".basket__list", container);
-    this._total = ensureElement<HTMLElement>(".basket__price", container);
-    this._button = ensureElement<HTMLButtonElement>(
-      ".basket__button",
-      container,
-    );
+        this._list = ensureElement<HTMLElement>(".basket__list", container);
+        this._total = ensureElement<HTMLElement>(".basket__price", container);
+        this._button = ensureElement<HTMLButtonElement>(".basket__button", container);
 
-    this._button.addEventListener("click", () => {
-      this.events.emit("basket:order");
-    });
-  }
+        this._button.addEventListener("click", () => {
+            this.events.emit("basket:order");
+        });
 
-  render(data?: Partial<{ items: HTMLElement[]; total: number }>): HTMLElement {
-    if (!data) return this.container;
-
-    // Производим очистку списка
-    this._list.innerHTML = "";
-    if (data.items && data.items.length > 0) {
-      this._list.replaceChildren(...data.items);
-      this._button.disabled = false;
-    } else {
-      const emptyMessage = document.createElement("li");
-      emptyMessage.textContent = "Корзина пуста";
-      emptyMessage.className = "basket__empty";
-      this._list.appendChild(emptyMessage);
-
-      this._button.disabled = true;
+        // Инициализируем корзину (по умолчанию пуста)
+        this.items = [];
     }
 
-    // Обновляем общую стоимость
-    if (data.total !== undefined) {
-      this._total.textContent = `${data.total} синапсов`;
+    /**
+     * Сеттер для управления состоянием кнопки
+     */
+    set disabled(value: boolean) {
+        this.setDisabled(this._button, value);
     }
 
-    return this.container;
-  }
+    /**
+     * Сеттер для обновления списка товаров
+     */
+    set items(items: HTMLElement[]) {
+        if (items.length > 0) {
+            this._list.replaceChildren(...items);
+            this.disabled = false;
+        } else {
+            // Если список пуст, просто очищаем его. 
+            // Надпись 'Корзина пуста' появится сама благодаря CSS.
+            this._list.replaceChildren(); 
+            this.disabled = true;
+        }
+    }
+
+    /**
+     * Сеттер для обновления итоговой стоимости
+     */
+    set total(total: number) {
+        this.setText(this._total, `${total} синапсов`);
+    }
 }
