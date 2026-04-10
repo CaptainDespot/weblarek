@@ -40,7 +40,7 @@ const orderForm = new OrderForm(cloneTemplate("#order") as HTMLFormElement, even
 const contactsForm = new ContactsForm(cloneTemplate("#contacts") as HTMLFormElement, events);
 const successView = new Success(cloneTemplate("#success"), events);
 
-let selectedProduct: IProduct | null = null;
+// ПЕРЕМЕННЫХ С ДАННЫМИ ТУТ БОЛЬШЕ НЕТ (selectedProduct удален)
 
 /**
  * Рендеринг элементов корзины
@@ -49,8 +49,7 @@ const renderBasketItems = (products: IProduct[]): HTMLElement[] => {
   return products.map((product, index) => {
     const card = new CardBasket(cloneTemplate("#card-basket"), {
       onDelete: () => bucketModel.removeProduct(product.id)
-    } as any); 
-
+    } as any);
     return card.render({
       title: product.title,
       price: product.price,
@@ -61,34 +60,39 @@ const renderBasketItems = (products: IProduct[]): HTMLElement[] => {
 
 // --- ОБРАБОТЧИКИ СОБЫТИЙ ---
 
-// 1. Выбор товара из каталога
+// 1. Клик по карточке в каталоге
 events.on("card:select", (product: IProduct) => {
-  selectedProduct = product; 
+  // Презентер не открывает модалку сам, он просто обновляет модель
+  catalogModel.setSelectedProduct(product);
+});
+
+// 2. Реакция на выбор товара в модели (РЕАКТИВНОЕ ОТКРЫТИЕ)
+events.on("card:selected", (product: IProduct) => {
   const inBasket = bucketModel.hasProduct(product.id);
   modal.render({
-    content: previewView.render({ ...product, inBasket } as any)
+    content: previewView.render({ 
+        ...product, 
+        inBasket 
+    } as any)
   });
   modal.open();
 });
 
-// 2. Добавление/удаление товара из превью
+// 3. Добавление/удаление товара из превью
 events.on("card:toggle", () => {
-  if (selectedProduct) {
-    if (bucketModel.hasProduct(selectedProduct.id)) {
-      bucketModel.removeProduct(selectedProduct.id);
+  // Получаем продукт из модели (инкапсуляция)
+  const product = catalogModel.getSelectedProduct();
+  if (product) {
+    if (bucketModel.hasProduct(product.id)) {
+      bucketModel.removeProduct(product.id);
     } else {
-      bucketModel.addProduct(selectedProduct);
+      bucketModel.addProduct(product);
     }
   }
   modal.close();
 });
 
-// 3. Удаление из корзины
-events.on("card:remove", (product: IProduct) => {
-  bucketModel.removeProduct(product.id);
-});
-
-// 4. Обновление интерфейса корзины (РЕАКТИВНО)
+// 4. Обновление интерфейса корзины
 events.on("basket:changed", (data: { products: IProduct[]; total: number }) => {
   header.count = data.products.length;
   const basketItems = renderBasketItems(data.products);
@@ -108,14 +112,19 @@ events.on("header:basket", () => {
 
 // 6. Оформление заказа (Оплата и адрес)
 events.on("basket:order", () => {
-  const { isValid } = buyerModel.validate();
+  const data = buyerModel.getData();
+  const { errors } = buyerModel.validate();
+  
+  // Расчет валидности только для текущего шага
+  const orderErrors = [errors.payment, errors.address].filter(Boolean);
+
   modal.render({
     content: orderForm.render({
-      payment: buyerModel.getData().payment,
-      address: buyerModel.getData().address,
-      valid: isValid,
-      errors: []
-    })
+      payment: data.payment,
+      address: data.address,
+      valid: orderErrors.length === 0,
+      errors: orderErrors
+    } as any)
   });
 });
 
@@ -130,34 +139,41 @@ events.on("contacts:change", (data: Partial<IBuyer>) => {
 
 // 8. Реакция модели на изменения (валидация)
 events.on("buyer:changed", () => {
-  const data = buyerModel.getData();
-  const { errors, isValid } = buyerModel.validate();
+  const data = buyerModel.getData(); // Оптимизация: получаем данные 1 раз
+  const { errors } = buyerModel.validate();
 
+  // Раздельная валидация для первой формы
+  const orderErrors = [errors.payment, errors.address].filter(Boolean);
   orderForm.render({
     payment: data.payment,
     address: data.address,
-    valid: isValid,
-    errors: Object.values(errors).filter(Boolean)
-  });
+    valid: orderErrors.length === 0,
+    errors: orderErrors
+  } as any);
 
+  // Раздельная валидация для второй формы
+  const contactErrors = [errors.email, errors.phone].filter(Boolean);
   contactsForm.render({
     email: data.email,
     phone: data.phone,
-    valid: isValid,
-    errors: Object.values(errors).filter(Boolean)
-  });
+    valid: contactErrors.length === 0,
+    errors: contactErrors
+  } as any);
 });
 
 // 9. Переход к контактам
 events.on("order:submit", () => {
-  const { isValid } = buyerModel.validate();
+  const data = buyerModel.getData();
+  const { errors } = buyerModel.validate();
+  const contactErrors = [errors.email, errors.phone].filter(Boolean);
+
   modal.render({
     content: contactsForm.render({
-      email: buyerModel.getData().email,
-      phone: buyerModel.getData().phone,
-      valid: isValid,
-      errors: []
-    })
+      email: data.email,
+      phone: data.phone,
+      valid: contactErrors.length === 0,
+      errors: contactErrors
+    } as any)
   });
 });
 
@@ -192,6 +208,7 @@ events.on("catalog:changed", (data: { products: IProduct[] }) => {
     const card = new CardCatalog(cloneTemplate("#card-catalog"), events, {
       onClick: () => events.emit("card:select", product)
     });
+    // Используем render с данными для работы сеттеров category и image
     return card.render(product);
   });
   page.catalog = cards;

@@ -13,16 +13,24 @@ export abstract class CardImage extends Card {
         this._image = ensureElement<HTMLImageElement>('.card__image', container);
     }
 
-    setCategory(category: string): void {
-        const categoryClass = categoryMap[category as keyof typeof categoryMap] || '';
-        this._category.textContent = category;
+    /**
+     * Сеттер для категории.
+     */
+    set category(value: string) {
+        const categoryClass = categoryMap[value as keyof typeof categoryMap] || '';
+        this.setText(this._category, value);
+        
+        // Сбрасываем классы и добавляем нужный
         this._category.className = 'card__category';
         if (categoryClass) {
             this._category.classList.add(categoryClass);
         }
     }
 
-    setProductImage(src: string, alt?: string): void {
-        super.setImage(this._image, `${CDN_URL}${src}`, alt);
+    /**
+     * Сеттер для изображения.
+     */
+    set image(value: string) {
+        this.setImage(this._image, `${CDN_URL}${value}`, this._title.textContent);
     }
 }

@@ -25,7 +25,7 @@ export class Catalog {
     this.selectedProduct = product;
   }
   // Получение выбранного товара
-  getSelectedProducts(): IProduct | null {
+  getSelectedProduct(): IProduct | null {
     return this.selectedProduct ? { ...this.selectedProduct } : null;
   }
 }
