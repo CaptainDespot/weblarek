@@ -15,15 +15,15 @@ export abstract class Card extends Component<IProduct> {
         this._price = ensureElement<HTMLElement>('.card__price', container);
     }
 
-    setTitle(title: string): void {
-        this._title.textContent = title;
-    }
+    set title(value: string) {
+    this.setText(this._title, value);
+}
 
-    setPrice(price: number | null): void {
-        if (price === null) {
-            this._price.textContent = 'Бесценно';
-        } else {
-            this._price.textContent = `${price} синапсов`;
-        }
+set price(value: number | null) {
+    if (value === null) {
+        this.setText(this._price, 'Бесценно');
+    } else {
+        this.setText(this._price, `${value} синапсов`);
     }
+}
 }

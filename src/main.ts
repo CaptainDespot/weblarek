@@ -40,14 +40,12 @@ const orderForm = new OrderForm(cloneTemplate("#order") as HTMLFormElement, even
 const contactsForm = new ContactsForm(cloneTemplate("#contacts") as HTMLFormElement, events);
 const successView = new Success(cloneTemplate("#success"), events);
 
-// ПЕРЕМЕННЫХ С ДАННЫМИ ТУТ БОЛЬШЕ НЕТ (selectedProduct удален)
-
 /**
  * Рендеринг элементов корзины
  */
 const renderBasketItems = (products: IProduct[]): HTMLElement[] => {
   return products.map((product, index) => {
-    const card = new CardBasket(cloneTemplate("#card-basket"), {
+    const card = new CardBasket(cloneTemplate("#card-basket"), events, {
       onDelete: () => bucketModel.removeProduct(product.id)
     } as any);
     return card.render({
@@ -62,7 +60,6 @@ const renderBasketItems = (products: IProduct[]): HTMLElement[] => {
 
 // 1. Клик по карточке в каталоге
 events.on("card:select", (product: IProduct) => {
-  // Презентер не открывает модалку сам, он просто обновляет модель
   catalogModel.setSelectedProduct(product);
 });
 

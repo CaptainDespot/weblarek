@@ -31,12 +31,9 @@ export class Form<T> extends Component<IFormState> {
         });
     }
 
-    protected onInputChange(field: keyof T, value: string) {
-        this.events.emit(`${this.container.name}:change`, {
-            field,
-            value
-        });
-    }
+   protected onInputChange(field: keyof T, value: string) {
+    this.events.emit(`${this.container.name}:change`, { [field]: value });
+}
 
     /**
      * Сеттер для управления доступностью кнопки отправки.

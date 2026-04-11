@@ -39,8 +39,6 @@ export class Bucket extends Component<{ items: HTMLElement[]; total: number }> {
             this._list.replaceChildren(...items);
             this.disabled = false;
         } else {
-            // Если список пуст, просто очищаем его. 
-            // Надпись 'Корзина пуста' появится сама благодаря CSS.
             this._list.replaceChildren(); 
             this.disabled = true;
         }

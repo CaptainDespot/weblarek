@@ -23,6 +23,9 @@ export class Catalog {
   // Сохранение выбранного товара
   setSelectedProduct(product: IProduct | null): void {
     this.selectedProduct = product;
+    if (product) {
+        this.events.emit('card:selected', product);
+    }
   }
   // Получение выбранного товара
   getSelectedProduct(): IProduct | null {
